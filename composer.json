@@ -1,0 +1,12 @@
+{
+    "name": "admin/student-todo",
+    "authors": [
+        {
+            "name": "Linh3723",
+            "email": "linh03072003@gmail.com"
+        }
+    ],
+    "require": {
+        "greg0/lazer-database": "^2.0"
+    }
+}
