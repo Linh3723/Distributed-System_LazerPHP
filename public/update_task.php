@@ -1,7 +1,7 @@
 <?php
 require __DIR__ . '/../vendor/autoload.php';
 use Lazer\Classes\Database as Lazer;
-define('LAZER_DATA_PATH', __DIR__ . '/../database/');
+
 header('Content-Type: application/json');
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {

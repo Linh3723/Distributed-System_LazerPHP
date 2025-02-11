@@ -113,35 +113,29 @@
         function saveTask() {
             const taskName = document.getElementById("new-task").value.trim();
             const deadline = document.getElementById("new-deadline").value;
+            const status = document.querySelector('input[name="new-status"]:checked').value; // Lấy trạng thái được chọn
+
 
             if (!taskName || !deadline) {
                 alert("Vui lòng nhập đầy đủ thông tin!");
                 return;
             }
 
-            const formData = new URLSearchParams();
-            formData.append("task", taskName);
-            formData.append("deadline", deadline);
-
-            console.log("Dữ liệu gửi đi:", taskName, deadline);
-
-            fetch("add_task.php", {
-                method: "POST",
-                headers: { "Content-Type": "application/x-www-form-urlencoded" },
-                body: formData.toString(),
+            fetch('add_task.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: `task=${encodeURIComponent(taskName)}&deadline=${encodeURIComponent(deadline)}`
             })
             .then(response => response.json())
             .then(data => {
-                console.log("Phản hồi từ server:", data);
                 if (data.error) {
                     alert("❌ " + data.error);
                 } else {
-                    fetchTasks();
+                    fetchTasks(); // Cập nhật danh sách sau khi thêm
                 }
             })
             .catch(error => console.error("Lỗi thêm công việc:", error));
         }
-
 
 
         function updateStatus(taskId, status) {
