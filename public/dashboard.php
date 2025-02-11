@@ -46,6 +46,9 @@
         }
     </style>
     <script>
+        function showAddTask() {
+            document.getElementById("add-row").style.display = "table-row";
+        }
         function fetchTasks() {
             fetch('get_tasks.php')
                 .then(response => response.json())
@@ -61,26 +64,85 @@
                             <th>Hành động</th>
                         </tr>
                     `;
-                    tasks.forEach(task => {
-                        const row = table.insertRow(-1);
-                        row.innerHTML = `
-                            <td>${task.task}</td>
-                            <td>${task.deadline}</td>
-                            <td><input type="radio" name="status_${task.id}" value="doing" ${task.status_doing ? 'checked' : ''} onclick="updateStatus(${task.id}, 'doing', this)"></td>
-                            <td><input type="radio" name="status_${task.id}" value="not_done" ${task.status_not_done ? 'checked' : ''} onclick="updateStatus(${task.id}, 'not_done', this)"></td>
-                            <td><input type="radio" name="status_${task.id}" value="done" ${task.status_done ? 'checked' : ''} onclick="updateStatus(${task.id}, 'done', this)"></td>
 
-                            <td class="task-actions">
-                                <button onclick="editTask(${task.id})">Sửa</button>
-                                <button onclick="deleteTask(${task.id})">Xóa</button>
+                    if (!Array.isArray(tasks)) {
+                        console.error("Dữ liệu không hợp lệ:", tasks);
+                        table.innerHTML += `<tr><td colspan="6">Lỗi tải danh sách!</td></tr>`;
+                        return;
+                    }
+
+                    if (tasks.length === 0) {
+                        table.innerHTML += `<tr><td colspan="6">Không có công việc nào!</td></tr>`;
+                    } else {
+                        tasks.forEach(task => {
+                            const row = table.insertRow(-1);
+                            row.innerHTML = `
+                                <td>${task.task}</td>
+                                <td>${task.deadline}</td>
+                                <td><input type="radio" name="status_${task.id}" value="doing" ${task.status === 'doing' ? 'checked' : ''} onclick="updateStatus(${task.id}, 'doing')"></td>
+                                <td><input type="radio" name="status_${task.id}" value="not_done" ${task.status === 'not_done' ? 'checked' : ''} onclick="updateStatus(${task.id}, 'not_done')"></td>
+                                <td><input type="radio" name="status_${task.id}" value="done" ${task.status === 'done' ? 'checked' : ''} onclick="updateStatus(${task.id}, 'done')"></td>
+                                <td><button onclick="deleteTask(${task.id})">Xóa</button></td>
+                            `;
+                        });
+                    }
+
+                    // Luôn thêm dòng "+ Thêm công việc"
+                    table.innerHTML += `
+                        <tr id="add-row" style="display: none;">
+                            <td><input type="text" id="new-task" placeholder="Tên công việc"></td>
+                            <td><input type="date" id="new-deadline"></td>
+                            <td>
+                                <input type="radio" name="new-status" value="doing"> Đang làm
                             </td>
-                        `;
-                    });
-                    const addRow = table.insertRow(-1);
-                    addRow.innerHTML = `<td colspan="6" class="add-task" onclick="addTaskRow()">+ Thêm công việc</td>`;
+                            <td>
+                                <input type="radio" name="new-status" value="not_done" checked> Chưa làm
+                            </td>
+                            <td>
+                                <input type="radio" name="new-status" value="done"> Hoàn thành
+                            </td>
+                            <td><button onclick="saveTask()">Lưu</button></td>
+                        </tr>
+                        <tr><td colspan="6" class="add-task" onclick="showAddTask()">+ Thêm công việc</td></tr>
+                    `;
+
                 })
-                .catch(error => console.error('Lỗi:', error));
+                .catch(error => console.error("Lỗi tải danh sách:", error));
         }
+
+        function saveTask() {
+            const taskName = document.getElementById("new-task").value.trim();
+            const deadline = document.getElementById("new-deadline").value;
+
+            if (!taskName || !deadline) {
+                alert("Vui lòng nhập đầy đủ thông tin!");
+                return;
+            }
+
+            const formData = new URLSearchParams();
+            formData.append("task", taskName);
+            formData.append("deadline", deadline);
+
+            console.log("Dữ liệu gửi đi:", taskName, deadline);
+
+            fetch("add_task.php", {
+                method: "POST",
+                headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                body: formData.toString(),
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log("Phản hồi từ server:", data);
+                if (data.error) {
+                    alert("❌ " + data.error);
+                } else {
+                    fetchTasks();
+                }
+            })
+            .catch(error => console.error("Lỗi thêm công việc:", error));
+        }
+
+
 
         function updateStatus(taskId, status) {
             fetch('update_task.php', {
@@ -88,65 +150,19 @@
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                 body: `id=${taskId}&status=${status}`
             })
-            .then(response => response.text())
-            .then(data => console.log("Cập nhật thành công:", data))
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert("❌ " + data.error);
+                } else {
+                    fetchTasks(); // Tải lại danh sách sau khi cập nhật
+                }
+            })
             .catch(error => console.error("Lỗi cập nhật:", error));
         }
 
-        function addTaskRow() {
-            const table = document.getElementById("task-table");
-            const newRow = table.insertRow(table.rows.length - 1);
-            newRow.innerHTML = `
-                <td><input type="text" name="task" placeholder="Tên công việc" required></td>
-                <td><input type="date" name="deadline" required></td>
-                <td><input type="radio" name="new_status" value="doing" required></td>
-                <td><input type="radio" name="new_status" value="not_done" required></td>
-                <td><input type="radio" name="new_status" value="done" required></td>
-                <td class="task-actions">
-                    <button onclick="saveTask(this)">Lưu</button>
-                </td>
-            `;
-        }
-
-
-        function saveTask(button) {
-            const row = button.closest("tr");
-            const taskName = row.querySelector("input[name='task']").value.trim();
-            const deadline = row.querySelector("input[name='deadline']").value;
-            const status = row.querySelector("input[name='new_status']:checked")?.value;
-
-            if (!taskName || !deadline || !status) {
-                alert("❌ Vui lòng nhập đầy đủ thông tin và chọn trạng thái!");
-                return;
-            }
-
-            console.log("🔄 Đang gửi request...");
-            
-            fetch('add_task.php', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: `task=${encodeURIComponent(taskName)}&deadline=${encodeURIComponent(deadline)}&status=${encodeURIComponent(status)}`
-            })
-            .then(response => response.json())
-            .then(data => {
-                console.log("✅ Phản hồi từ server:", data);
-                if (data.error) {
-                    alert(`❌ Lỗi khi thêm công việc: ${data.error}`);
-                } else {
-                    alert("✅ Thêm công việc thành công!");
-                    fetchTasks();
-                }
-            })
-            .catch(error => {
-                console.error("❌ Lỗi request:", error);
-                alert("⚠ Không thể kết nối đến máy chủ!");
-            });
-        }
-
-
-
-
         window.onload = fetchTasks;
+
     </script>
 </head>
 <body>

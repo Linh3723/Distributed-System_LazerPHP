@@ -1,19 +1,18 @@
 <?php
-header('Content-Type: application/json');
+require __DIR__ . '/../vendor/autoload.php';
 
-// Định nghĩa đường dẫn tệp JSON
-define('TASKS_FILE', __DIR__ . '/../database/tasks.data.json');
-
-// Kiểm tra nếu tệp tồn tại
-if (!file_exists(TASKS_FILE)) {
-    echo json_encode([]);
-    exit;
+if (!defined('LAZER_DATA_PATH')) {
+    define('LAZER_DATA_PATH', __DIR__ . '/../database/');
 }
 
-// Đọc dữ liệu từ tệp
-$data = file_get_contents(TASKS_FILE);
-$tasks = json_decode($data, true);
+use Lazer\Classes\Database as Lazer;
 
-// Trả về dữ liệu dưới dạng JSON
-echo json_encode($tasks);
+header('Content-Type: application/json');
+
+try {
+    $tasks = Lazer::table('tasks')->findAll()->asArray();
+    echo json_encode($tasks);
+} catch (Exception $e) {
+    echo json_encode(["error" => "Lỗi tải công việc: " . $e->getMessage()]);
+}
 ?>

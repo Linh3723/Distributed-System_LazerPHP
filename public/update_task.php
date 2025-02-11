@@ -1,34 +1,27 @@
 <?php
-require 'database.php'; // Đảm bảo file kết nối CSDL
+require __DIR__ . '/../vendor/autoload.php';
+use Lazer\Classes\Database as Lazer;
+define('LAZER_DATA_PATH', __DIR__ . '/../database/');
+header('Content-Type: application/json');
 
-if ($_SERVER["REQUEST_METHOD"] === "POST") {
-    if (isset($_POST['id']) && isset($_POST['status'])) {
-        $taskId = intval($_POST['id']);
-        $status = $_POST['status'];
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $id = $_POST['id'] ?? null;
+    $status = $_POST['status'] ?? null;
 
-        // Xác định trạng thái công việc (chỉ 1 trạng thái là true, còn lại false)
-        $status_doing = ($status === 'doing') ? 1 : 0;
-        $status_not_done = ($status === 'not_done') ? 1 : 0;
-        $status_done = ($status === 'done') ? 1 : 0;
+    if (!$id || !$status) {
+        echo json_encode(["error" => "Thiếu dữ liệu!"]);
+        exit;
+    }
 
-        // Cập nhật trạng thái trong database
-        $sql = "UPDATE tasks SET status_doing = ?, status_not_done = ?, status_done = ? WHERE id = ?";
-        $stmt = $conn->prepare($sql);
-        $stmt->bind_param("iiii", $status_doing, $status_not_done, $status_done, $taskId);
-
-        if ($stmt->execute()) {
-            echo json_encode(["success" => "Cập nhật thành công"]);
-        } else {
-            echo json_encode(["error" => "Cập nhật thất bại"]);
-        }
-
-        $stmt->close();
-    } else {
-        echo json_encode(["error" => "Thiếu dữ liệu"]);
+    try {
+        $task = Lazer::table('tasks')->find($id);
+        $task->status = $status; // Cập nhật trạng thái
+        $task->save();
+        echo json_encode(["success" => "Cập nhật thành công"]);
+    } catch (Exception $e) {
+        echo json_encode(["error" => "Lỗi: " . $e->getMessage()]);
     }
 } else {
-    echo json_encode(["error" => "Phương thức không hợp lệ"]);
+    echo json_encode(["error" => "Phương thức không hợp lệ!"]);
 }
-
-$conn->close();
 ?>
