@@ -1,0 +1,16 @@
+{
+    "name": "tasks",
+    "fields": {
+        "id": {
+            "type": "integer",
+            "primary": true,
+            "auto_increment": true
+        },
+        "task": {
+            "type": "string"
+        },
+        "created_at": {
+            "type": "string"
+        }
+    }
+}
