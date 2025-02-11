@@ -1,16 +1,1 @@
-{
-    "name": "tasks",
-    "fields": {
-        "id": {
-            "type": "integer",
-            "primary": true,
-            "auto_increment": true
-        },
-        "task": {
-            "type": "string"
-        },
-        "created_at": {
-            "type": "string"
-        }
-    }
-}
+{"last_id":2,"schema":{"id":"integer","task":"string","deadline":"string","status_doing":"boolean","status_not_done":"boolean","status_done":"boolean","created_at":"string"},"relations":{}}
