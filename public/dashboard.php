@@ -12,15 +12,31 @@
             margin: 0;
         }
         .sidebar {
-            width: 250px;
+            width: 200px;
             background: #f4f4f4;
             padding: 20px;
+        }
+        .sidebar p {
+            cursor: pointer;
+            padding: 10px;
+            margin: 5px 0;
+            transition: 0.3s;
+        }
+        .sidebar p.active {
+            font-weight: bold;
+            color: #007bff;
         }
         .content {
             flex: 1;
             padding: 20px;
-            text-align: center;
         }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+
         table {
             width: 100%;
             border-collapse: collapse;
@@ -111,9 +127,24 @@
         }
     </style>
     <script>
+        function showTab(tabId, element) {
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.getElementById(tabId).classList.add('active');
+            document.querySelectorAll('.sidebar p').forEach(item => {
+                item.classList.remove('active');
+            });
+            element.classList.add('active');
+            if (tabId === 'task-list') {
+                fetchTasks();
+            }
+        }
+
         function showAddTask() {
             document.getElementById("add-row").style.display = "table-row";
         }
+
         function formatDate(isoDate) {
             if (!isoDate || isoDate === "null") return "";
             
@@ -200,7 +231,6 @@
                 .catch(error => console.error("Lỗi tải danh sách:", error));
         }
 
-
         function saveTask() {
             const taskName = document.getElementById("new-task").value.trim();
             const deadline = document.getElementById("new-deadline").value;
@@ -230,7 +260,6 @@
             .catch(error => console.error("Lỗi khi gửi yêu cầu:", error));
         }
 
-
         function editTask(id) {
             const radios = document.querySelectorAll(`input[name="status_${id}"]`);
             radios.forEach(radio => {
@@ -242,8 +271,6 @@
             editButton.innerHTML = `<img src="https://cdn-icons-png.flaticon.com/512/4856/4856668.png" alt="Lưu" class="save-icon">`;
             editButton.setAttribute("onclick", `saveEdit(${id})`);
         }
-
-
 
         function saveEdit(id) {
             const status = document.querySelector(`input[name="status_${id}"]:checked`).value;
@@ -272,9 +299,6 @@
             .catch(error => console.error("Lỗi cập nhật:", error));
         }
 
-
-
-
         function deleteTask(id) {
             if (!confirm("Bạn có chắc muốn xóa công việc này?")) return;
             fetch('delete_task.php', {
@@ -291,15 +315,49 @@
 </head>
 <body>
     <div class="sidebar">
-        <p><b></b></p>
-        <p>Tìm kiếm</p>
-        <p>Danh sách công việc</p>
-        <p>Quản lý tài chính</p>
+        <div class="user-info">
+            <img src="https://static.vecteezy.com/system/resources/previews/019/879/186/non_2x/user-icon-on-transparent-background-free-png.png" alt="User Avatar" width="120" height="70">
+            <p>Người dùng</p>
+        </div>
+        <p onclick="showTab('search', this)" class="active">Tìm kiếm</p>
+        <p onclick="showTab('task-list', this)">Danh sách công việc</p>
+        <p onclick="showTab('calender', this)">Lịch</p>
+        <p onclick="showTab('finance', this)">Quản lý tài chính</p>
         <p><a href="logout.php">Đăng xuất</a></p>
     </div>
     <div class="content">
-        <h2>Danh sách công việc</h2>
-        <table id="task-table"></table>
+        <div id="search" class="tab-content active">
+            <h2>Tìm kiếm</h2>
+            <input type="text" placeholder="Nhập từ khóa...">
+            <button>Tìm kiếm</button>
+        </div>
+        <div id="task-list" class="tab-content">
+            <h2>Danh sách công việc</h2>
+            <table id="task-table"></table>
+        </div>
+        <div id="calender" class="tab-content">
+            <h2>To do list</h2>
+            
+        </div>
+        <div id="finance" class="tab-content">
+            <h2>Quản lý tài chính</h2>
+            <div class="finance-form">
+                <select id="trans-type">
+                    <option value="Thu nhập">Thu nhập</option>
+                    <option value="Chi tiêu">Chi tiêu</option>
+                </select>
+                <input type="number" id="trans-amount" placeholder="Số tiền">
+                <input type="text" id="trans-desc" placeholder="Mô tả giao dịch">
+                <button onclick="addTransaction()">Thêm giao dịch</button>
+            </div>
+            <table id="finance-table" border="1" style="margin-top: 20px; width: 100%; text-align: center;">
+                <tr>
+                    <th>Loại</th>
+                    <th>Số tiền</th>
+                    <th>Mô tả</th>
+                </tr>
+            </table>
+        </div>
     </div>
 </body>
 </html>
