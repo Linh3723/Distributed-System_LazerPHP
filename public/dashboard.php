@@ -39,10 +39,75 @@
             display: flex;
             justify-content: center;
             gap: 10px;
+            height: 34px;
         }
         .add-task {
             cursor: pointer;
             font-weight: bold;
+        }
+        .radio-container {
+            display: flex;
+            justify-content: center;
+        }
+        input[type="radio"] {
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            border: 2px solid gray;
+            background-color: white;
+            margin: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s, border-color 0.3s;
+        }
+
+        /* Khi radio được chọn, đổi màu nền và viền */
+        input[value="doing"]:checked {
+            background-color: blue;
+            border-color: blue;
+        }
+
+        input[value="not_done"]:checked {
+            background-color: red;
+            border-color: red;
+        }
+
+        input[value="done"]:checked {
+            background-color: green;
+            border-color: green;
+        }
+        .delete-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 5px;
+        }
+
+        .delete-icon {
+            width: 30px;
+            height: 30px;
+        }
+        .edit-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 5px;
+        }
+
+        .edit-icon {
+            width: 30px;
+            height: 30px;
+        }
+        .save-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 5px;
+        }
+
+        .save-icon {
+            width: 30px;
+            height: 30px;
         }
     </style>
     <script>
@@ -51,9 +116,16 @@
         }
         function formatDate(isoDate) {
             if (!isoDate || isoDate === "null") return "";
-            const parts = isoDate.split("-");
-            return `${parts[2]}/${parts[1]}/${parts[0]}`; 
+            
+            // Chuyển đổi từ "yyyy-mm-dd" sang "dd/mm/yyyy"
+            const dateObj = new Date(isoDate);
+            const day = String(dateObj.getDate()).padStart(2, '0');
+            const month = String(dateObj.getMonth() + 1).padStart(2, '0'); // Tháng bắt đầu từ 0
+            const year = dateObj.getFullYear();
+
+            return `${day}/${month}/${year}`;
         }
+
         function updateStatus(id, status) {
             fetch('update_task.php', {
                 method: 'POST',
@@ -88,34 +160,46 @@
                         </tr>
                     `;
                     tasks.forEach(task => {
-                        const formattedDate = formatDate(task.deadline); 
+                        const formattedDate = formatDate(task.deadline); // Chuyển đổi ngày
                         const row = table.insertRow(-1);
                         row.innerHTML = `
-                            <td><span id="task-name-${task.id}">${task.task}</span> <input type="text" id="edit-task-${task.id}" value="${task.task}" style="display:none;"></td>
-                            <td><span id="task-deadline-${task.id}">${task.deadline}</span> <input type="date" id="edit-deadline-${task.id}" value="${task.deadline}" style="display:none;"></td>
-                            <td><input type="radio" name="status_${task.id}" value="doing" ${task.status === 'doing' ? 'checked' : ''} onclick="updateStatus(${task.id}, 'doing')"></td>
-                            <td><input type="radio" name="status_${task.id}" value="not_done" ${task.status === 'not_done' ? 'checked' : ''} onclick="updateStatus(${task.id}, 'not_done')"></td>
-                            <td><input type="radio" name="status_${task.id}" value="done" ${task.status === 'done' ? 'checked' : ''} onclick="updateStatus(${task.id}, 'done')"></td>
+                            <td><span id="task-name-${task.id}">${task.task}</span> 
+                                <input type="text" id="edit-task-${task.id}" value="${task.task}" style="display:none;">
+                            </td>
+                            <td><span id="task-deadline-${task.id}">${formattedDate}</span> 
+                                <input type="date" id="edit-deadline-${task.id}" value="${task.deadline}" style="display:none;">
+                            </td>
+                            <td><input type="radio" name="status_${task.id}" value="doing" ${task.status === 'doing' ? 'checked' : ''} disabled></td>
+                            <td><input type="radio" name="status_${task.id}" value="not_done" ${task.status === 'not_done' ? 'checked' : ''} disabled></td>
+                            <td><input type="radio" name="status_${task.id}" value="done" ${task.status === 'done' ? 'checked' : ''} disabled></td>
                             <td class="task-actions">
-                                <button onclick="editTask(${task.id})">Sửa</button>
-                                <button onclick="deleteTask(${task.id})">Xóa</button>
-                                <button onclick="saveEdit(${task.id})" style="display:none;">Lưu</button>
+                                <button onclick="editTask(${task.id})" class="edit-btn">
+                                    <img src="https://cdn2.iconfinder.com/data/icons/ui-web-thin/128/edit-change-pen-write-512.png" alt="Sửa" class="edit-icon">
+                                </button>
+                                <button onclick="deleteTask(${task.id})" class="delete-btn">
+                                    <img src="https://e7.pngegg.com/pngimages/862/47/png-clipart-rubbish-bins-waste-paper-baskets-computer-icons-recycling-waste-miscellaneous-angle.png" alt="Xóa" class="delete-icon">
+                                </button>
                             </td>
                         `;
                     });
-                    
+
                     table.innerHTML += `
                         <tr id="add-row" style="display: none;">
                             <td><input type="text" id="new-task" placeholder="Tên công việc"></td>
                             <td><input type="date" id="new-deadline"></td>
                             <td colspan="3"></td>
-                            <td><button onclick="saveTask()">Lưu</button></td>
+                            <td>
+                                <button onclick="saveTask()" class="save-btn">
+                                    <img src="https://cdn-icons-png.flaticon.com/512/4856/4856668.png" alt="Lưu" class="save-icon">
+                                </button>
+                            </td>
                         </tr>
                         <tr><td colspan="6" class="add-task" onclick="showAddTask()">+ Thêm công việc</td></tr>
                     `;
                 })
                 .catch(error => console.error("Lỗi tải danh sách:", error));
         }
+
 
         function saveTask() {
             const taskName = document.getElementById("new-task").value.trim();
@@ -148,40 +232,47 @@
 
 
         function editTask(id) {
-            document.getElementById(`task-name-${id}`).style.display = "none";
-            document.getElementById(`edit-task-${id}`).style.display = "inline-block";
-            document.getElementById(`task-deadline-${id}`).style.display = "none";
-            document.getElementById(`edit-deadline-${id}`).style.display = "inline-block";
-            document.querySelector(`button[onclick='editTask(${id})']`).style.display = "none";
-            document.querySelector(`button[onclick='saveEdit(${id})']`).style.display = "inline-block";
+            const radios = document.querySelectorAll(`input[name="status_${id}"]`);
+            radios.forEach(radio => {
+                radio.disabled = false;
+            });
+
+            // Đổi nút "Sửa" thành "Lưu"
+            const editButton = document.querySelector(`button[onclick="editTask(${id})"]`);
+            editButton.innerHTML = `<img src="https://cdn-icons-png.flaticon.com/512/4856/4856668.png" alt="Lưu" class="save-icon">`;
+            editButton.setAttribute("onclick", `saveEdit(${id})`);
         }
 
-        function saveEdit(id) {
-            const task = document.getElementById(`edit-task-${id}`).value.trim();
-            const deadline = document.getElementById(`edit-deadline-${id}`).value;
-            const status = document.querySelector(`input[name="status_${id}"]:checked`).value;
 
-            if (!task || !deadline) {
-                alert("Vui lòng nhập đầy đủ thông tin!");
-                return;
-            }
+
+        function saveEdit(id) {
+            const status = document.querySelector(`input[name="status_${id}"]:checked`).value;
 
             fetch('update_task.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: `id=${id}&task=${encodeURIComponent(task)}&deadline=${encodeURIComponent(deadline)}&status=${encodeURIComponent(status)}&save=true`
+                body: `id=${id}&status=${encodeURIComponent(status)}&save=true`
             })
             .then(response => response.json())
             .then(data => {
-                console.log("Server Response:", data);
                 if (data.error) {
                     alert("Lỗi: " + data.error);
                 } else {
-                    fetchTasks(); // Cập nhật danh sách công việc
+                    const radios = document.querySelectorAll(`input[name="status_${id}"]`);
+                    radios.forEach(radio => {
+                        radio.disabled = true;
+                    });
+
+                    // Đổi nút "Lưu" thành "Sửa"
+                    const saveButton = document.querySelector(`button[onclick="saveEdit(${id})"]`);
+                    saveButton.innerHTML = `<img src="https://cdn2.iconfinder.com/data/icons/ui-web-thin/128/edit-change-pen-write-512.png" alt="Sửa" class="edit-icon">`;
+                    saveButton.setAttribute("onclick", `editTask(${id})`);
                 }
             })
             .catch(error => console.error("Lỗi cập nhật:", error));
         }
+
+
 
 
         function deleteTask(id) {
