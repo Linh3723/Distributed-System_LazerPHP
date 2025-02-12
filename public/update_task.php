@@ -19,12 +19,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     try {
         $task = Lazer::table('tasks')->find($id);
 
-        // Cập nhật chỉ khi nhấn "Lưu"
         if (isset($_POST['save']) && $_POST['save'] === "true") {
             if ($taskName) $task->task = $taskName;
             if ($deadline) $task->deadline = $deadline;
             
-            // Kiểm tra trạng thái hợp lệ
             $valid_statuses = ["doing", "not_done", "done"];
             if ($status && in_array($status, $valid_statuses)) {
                 $task->status = $status;

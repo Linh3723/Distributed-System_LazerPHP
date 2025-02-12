@@ -8,7 +8,6 @@ header('Content-Type: application/json');
 try {
     $tasks = Lazer::table('tasks')->findAll()->asArray();
 
-    // Chuẩn hóa trạng thái trả về
     foreach ($tasks as &$task) {
         $statusMap = [
             'not done' => 'not_done',

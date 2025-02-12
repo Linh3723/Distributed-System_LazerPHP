@@ -2,7 +2,7 @@
 session_start();
 require __DIR__ . '/../vendor/autoload.php';
 
-define('LAZER_DATA_PATH', __DIR__ . '/../database/'); // Định nghĩa thư mục database
+define('LAZER_DATA_PATH', __DIR__ . '/../database/');
 
 use Lazer\Classes\Database as Lazer;
 
