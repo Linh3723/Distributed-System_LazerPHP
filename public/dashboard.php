@@ -49,6 +49,29 @@
         function showAddTask() {
             document.getElementById("add-row").style.display = "table-row";
         }
+        function formatDate(isoDate) {
+            if (!isoDate || isoDate === "null") return "";
+            const parts = isoDate.split("-");
+            return `${parts[2]}/${parts[1]}/${parts[0]}`; 
+        }
+        function updateStatus(id, status) {
+            fetch('update_task.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: `id=${id}&status=${encodeURIComponent(status)}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log("Server Response:", data);
+                if (data.error) {
+                    alert("Lỗi: " + data.error);
+                } else {
+                    fetchTasks(); // Cập nhật danh sách
+                }
+            })
+            .catch(error => console.error("Lỗi cập nhật trạng thái:", error));
+        }
+
         function fetchTasks() {
             fetch('get_tasks.php')
                 .then(response => response.json())
@@ -64,48 +87,32 @@
                             <th>Hành động</th>
                         </tr>
                     `;
-
-                    if (!Array.isArray(tasks)) {
-                        console.error("Dữ liệu không hợp lệ:", tasks);
-                        table.innerHTML += `<tr><td colspan="6">Lỗi tải danh sách!</td></tr>`;
-                        return;
-                    }
-
-                    if (tasks.length === 0) {
-                        table.innerHTML += `<tr><td colspan="6">Không có công việc nào!</td></tr>`;
-                    } else {
-                        tasks.forEach(task => {
-                            const row = table.insertRow(-1);
-                            row.innerHTML = `
-                                <td>${task.task}</td>
-                                <td>${task.deadline}</td>
-                                <td><input type="radio" name="status_${task.id}" value="doing" ${task.status === 'doing' ? 'checked' : ''} onclick="updateStatus(${task.id}, 'doing')"></td>
-                                <td><input type="radio" name="status_${task.id}" value="not_done" ${task.status === 'not_done' ? 'checked' : ''} onclick="updateStatus(${task.id}, 'not_done')"></td>
-                                <td><input type="radio" name="status_${task.id}" value="done" ${task.status === 'done' ? 'checked' : ''} onclick="updateStatus(${task.id}, 'done')"></td>
-                                <td><button onclick="deleteTask(${task.id})">Xóa</button></td>
-                            `;
-                        });
-                    }
-
-                    // Luôn thêm dòng "+ Thêm công việc"
+                    tasks.forEach(task => {
+                        const formattedDate = formatDate(task.deadline); 
+                        const row = table.insertRow(-1);
+                        row.innerHTML = `
+                            <td><span id="task-name-${task.id}">${task.task}</span> <input type="text" id="edit-task-${task.id}" value="${task.task}" style="display:none;"></td>
+                            <td><span id="task-deadline-${task.id}">${task.deadline}</span> <input type="date" id="edit-deadline-${task.id}" value="${task.deadline}" style="display:none;"></td>
+                            <td><input type="radio" name="status_${task.id}" value="doing" ${task.status === 'doing' ? 'checked' : ''} onclick="updateStatus(${task.id}, 'doing')"></td>
+                            <td><input type="radio" name="status_${task.id}" value="not_done" ${task.status === 'not_done' ? 'checked' : ''} onclick="updateStatus(${task.id}, 'not_done')"></td>
+                            <td><input type="radio" name="status_${task.id}" value="done" ${task.status === 'done' ? 'checked' : ''} onclick="updateStatus(${task.id}, 'done')"></td>
+                            <td class="task-actions">
+                                <button onclick="editTask(${task.id})">Sửa</button>
+                                <button onclick="deleteTask(${task.id})">Xóa</button>
+                                <button onclick="saveEdit(${task.id})" style="display:none;">Lưu</button>
+                            </td>
+                        `;
+                    });
+                    
                     table.innerHTML += `
                         <tr id="add-row" style="display: none;">
                             <td><input type="text" id="new-task" placeholder="Tên công việc"></td>
                             <td><input type="date" id="new-deadline"></td>
-                            <td>
-                                <input type="radio" name="new-status" value="doing"> Đang làm
-                            </td>
-                            <td>
-                                <input type="radio" name="new-status" value="not_done" checked> Chưa làm
-                            </td>
-                            <td>
-                                <input type="radio" name="new-status" value="done"> Hoàn thành
-                            </td>
+                            <td colspan="3"></td>
                             <td><button onclick="saveTask()">Lưu</button></td>
                         </tr>
                         <tr><td colspan="6" class="add-task" onclick="showAddTask()">+ Thêm công việc</td></tr>
                     `;
-
                 })
                 .catch(error => console.error("Lỗi tải danh sách:", error));
         }
@@ -113,8 +120,9 @@
         function saveTask() {
             const taskName = document.getElementById("new-task").value.trim();
             const deadline = document.getElementById("new-deadline").value;
-            const status = document.querySelector('input[name="new-status"]:checked').value; // Lấy trạng thái được chọn
 
+            // Debug: Kiểm tra xem dữ liệu lấy từ input có đúng không
+            console.log("Task:", taskName, "Deadline:", deadline);
 
             if (!taskName || !deadline) {
                 alert("Vui lòng nhập đầy đủ thông tin!");
@@ -128,40 +136,71 @@
             })
             .then(response => response.json())
             .then(data => {
+                console.log("Server Response:", data);
                 if (data.error) {
-                    alert("❌ " + data.error);
+                    alert("Lỗi: " + data.error);
                 } else {
-                    fetchTasks(); // Cập nhật danh sách sau khi thêm
+                    fetchTasks(); // Cập nhật danh sách công việc
                 }
             })
-            .catch(error => console.error("Lỗi thêm công việc:", error));
+            .catch(error => console.error("Lỗi khi gửi yêu cầu:", error));
         }
 
 
-        function updateStatus(taskId, status) {
+        function editTask(id) {
+            document.getElementById(`task-name-${id}`).style.display = "none";
+            document.getElementById(`edit-task-${id}`).style.display = "inline-block";
+            document.getElementById(`task-deadline-${id}`).style.display = "none";
+            document.getElementById(`edit-deadline-${id}`).style.display = "inline-block";
+            document.querySelector(`button[onclick='editTask(${id})']`).style.display = "none";
+            document.querySelector(`button[onclick='saveEdit(${id})']`).style.display = "inline-block";
+        }
+
+        function saveEdit(id) {
+            const task = document.getElementById(`edit-task-${id}`).value.trim();
+            const deadline = document.getElementById(`edit-deadline-${id}`).value;
+            const status = document.querySelector(`input[name="status_${id}"]:checked`).value;
+
+            if (!task || !deadline) {
+                alert("Vui lòng nhập đầy đủ thông tin!");
+                return;
+            }
+
             fetch('update_task.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: `id=${taskId}&status=${status}`
+                body: `id=${id}&task=${encodeURIComponent(task)}&deadline=${encodeURIComponent(deadline)}&status=${encodeURIComponent(status)}&save=true`
             })
             .then(response => response.json())
             .then(data => {
+                console.log("Server Response:", data);
                 if (data.error) {
-                    alert("❌ " + data.error);
+                    alert("Lỗi: " + data.error);
                 } else {
-                    fetchTasks(); // Tải lại danh sách sau khi cập nhật
+                    fetchTasks(); // Cập nhật danh sách công việc
                 }
             })
             .catch(error => console.error("Lỗi cập nhật:", error));
         }
 
-        window.onload = fetchTasks;
 
+        function deleteTask(id) {
+            if (!confirm("Bạn có chắc muốn xóa công việc này?")) return;
+            fetch('delete_task.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: `id=${id}`
+            })
+            .then(() => fetchTasks())
+            .catch(error => console.error("Lỗi xóa công việc:", error));
+        }
+
+        window.onload = fetchTasks;
     </script>
 </head>
 <body>
     <div class="sidebar">
-        <p><b>Ảnh đại diện + tên</b></p>
+        <p><b></b></p>
         <p>Tìm kiếm</p>
         <p>Danh sách công việc</p>
         <p>Quản lý tài chính</p>
@@ -169,8 +208,7 @@
     </div>
     <div class="content">
         <h2>Danh sách công việc</h2>
-        <table id="task-table">
-        </table>
+        <table id="task-table"></table>
     </div>
 </body>
 </html>
