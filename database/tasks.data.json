@@ -1,1 +1,5 @@
+<<<<<<< HEAD
 [{"id":1,"task":"H\u1ecdc PHP","deadline":"2025-02-15","status":"done","created_at":"2025-02-10 12:00:00"},{"id":41,"task":"H\u1ecdc to\u00e1n","deadline":"2025-03-08","status":"done","created_at":null},{"id":44,"task":"H\u1ecdp","deadline":"2025-01-30","status":"not_done","created_at":null},{"id":45,"task":"H\u1ecdp l\u1edbp","deadline":"2025-01-27","status":"done","created_at":null},{"id":46,"task":"\u0110i l\u00e0m","deadline":"2025-02-12","status":"not_done","created_at":null},{"id":47,"task":"H\u1ecdp","deadline":"2025-02-05","status":"doing","created_at":null},{"id":48,"task":"H\u1ecdc to\u00e1n","deadline":"2025-03-06","status":"doing","created_at":null}]
+=======
+[{"id":1,"task":"H\u1ecdc PHP","deadline":"2025-02-15","status":"not_done","created_at":"2025-02-10 12:00:00"},{"id":2,"task":"Xem t\u00e0i li\u1ec7u Lazer Database","deadline":"2025-02-20","status":"not_done","created_at":"2025-02-10 13:00:00"},{"id":41,"task":"H\u1ecdc to\u00e1n","deadline":"2025-03-08","status":"doing","created_at":null}]
+>>>>>>> 00d824efa23e28edc1b03db5682b25fb12499bb7

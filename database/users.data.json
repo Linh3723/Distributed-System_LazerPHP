@@ -1,1 +1,5 @@
+<<<<<<< HEAD
 [{"id":1,"name":"Nguy\u1ec5n Mai Linh","email":"linh03072003@gmail.com","password":"$2y$10$G3BpEAo\/qVECDr7FVk24E.poF20M2J9ZwTWVU\/P06xoNnNJoqVNVa","created_at":"2025-02-11 16:20:30"},{"id":2,"name":"Linh","email":"linh123@gmail.com","password":"$2y$10$SfXT420ddLng9Y.VIqiv.u\/Afk34\/VejcoOVhUzYXvogTX2ulNS9i","created_at":"2025-02-12 07:26:11"}]
+=======
+[{"id":1,"name":"Nguy\u1ec5n Mai Linh","email":"linh03072003@gmail.com","password":"$2y$10$G3BpEAo\/qVECDr7FVk24E.poF20M2J9ZwTWVU\/P06xoNnNJoqVNVa","created_at":"2025-02-11 16:20:30"},{"id":2,"name":"Nhi","email":"Nhi@gmail.com","password":"$2y$10$ZlSifEJixspOL8Ub8ju3ZO3.x7EcFZBhMC0ZhsZy22ohLS0X461bG","created_at":"2025-02-12 08:25:01"}]
+>>>>>>> 00d824efa23e28edc1b03db5682b25fb12499bb7

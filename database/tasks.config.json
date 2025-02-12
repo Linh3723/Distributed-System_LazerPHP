@@ -1,1 +1,5 @@
+<<<<<<< HEAD
 {"last_id":48,"schema":{"id":"integer","task":"string","deadline":"string","status":"string","created_at":"string"},"relations":{}}
+=======
+{"last_id":44,"schema":{"id":"integer","task":"string","deadline":"string","status":"string","created_at":"string"},"relations":{}}
+>>>>>>> 00d824efa23e28edc1b03db5682b25fb12499bb7
