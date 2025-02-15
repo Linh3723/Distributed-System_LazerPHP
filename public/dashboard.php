@@ -77,7 +77,6 @@
             transition: background-color 0.3s, border-color 0.3s;
         }
 
-        /* Khi radio được chọn, đổi màu nền và viền */
         input[value="doing"]:checked {
             background-color: blue;
             border-color: blue;
@@ -148,10 +147,9 @@
         function formatDate(isoDate) {
             if (!isoDate || isoDate === "null") return "";
             
-            // Chuyển đổi từ "yyyy-mm-dd" sang "dd/mm/yyyy"
             const dateObj = new Date(isoDate);
             const day = String(dateObj.getDate()).padStart(2, '0');
-            const month = String(dateObj.getMonth() + 1).padStart(2, '0'); // Tháng bắt đầu từ 0
+            const month = String(dateObj.getMonth() + 1).padStart(2, '0');
             const year = dateObj.getFullYear();
 
             return `${day}/${month}/${year}`;
@@ -169,7 +167,7 @@
                 if (data.error) {
                     alert("Lỗi: " + data.error);
                 } else {
-                    fetchTasks(); // Cập nhật danh sách
+                    fetchTasks(); 
                 }
             })
             .catch(error => console.error("Lỗi cập nhật trạng thái:", error));
@@ -191,7 +189,7 @@
                         </tr>
                     `;
                     tasks.forEach(task => {
-                        const formattedDate = formatDate(task.deadline); // Chuyển đổi ngày
+                        const formattedDate = formatDate(task.deadline); 
                         const row = table.insertRow(-1);
                         row.innerHTML = `
                             <td><span id="task-name-${task.id}">${task.task}</span> 
@@ -235,7 +233,6 @@
             const taskName = document.getElementById("new-task").value.trim();
             const deadline = document.getElementById("new-deadline").value;
 
-            // Debug: Kiểm tra xem dữ liệu lấy từ input có đúng không
             console.log("Task:", taskName, "Deadline:", deadline);
 
             if (!taskName || !deadline) {
@@ -254,7 +251,7 @@
                 if (data.error) {
                     alert("Lỗi: " + data.error);
                 } else {
-                    fetchTasks(); // Cập nhật danh sách công việc
+                    fetchTasks(); 
                 }
             })
             .catch(error => console.error("Lỗi khi gửi yêu cầu:", error));
@@ -266,7 +263,6 @@
                 radio.disabled = false;
             });
 
-            // Đổi nút "Sửa" thành "Lưu"
             const editButton = document.querySelector(`button[onclick="editTask(${id})"]`);
             editButton.innerHTML = `<img src="https://cdn-icons-png.flaticon.com/512/4856/4856668.png" alt="Lưu" class="save-icon">`;
             editButton.setAttribute("onclick", `saveEdit(${id})`);
@@ -290,7 +286,6 @@
                         radio.disabled = true;
                     });
 
-                    // Đổi nút "Lưu" thành "Sửa"
                     const saveButton = document.querySelector(`button[onclick="saveEdit(${id})"]`);
                     saveButton.innerHTML = `<img src="https://cdn2.iconfinder.com/data/icons/ui-web-thin/128/edit-change-pen-write-512.png" alt="Sửa" class="edit-icon">`;
                     saveButton.setAttribute("onclick", `editTask(${id})`);
@@ -309,7 +304,58 @@
             .then(() => fetchTasks())
             .catch(error => console.error("Lỗi xóa công việc:", error));
         }
+        function addTransaction() {
+    const type = document.getElementById("trans-type").value;
+    const amount = document.getElementById("trans-amount").value;
+    const description = document.getElementById("trans-desc").value;
 
+    if (!amount || !description) {
+        alert("Vui lòng nhập số tiền và mô tả!");
+        return;
+    }
+
+    fetch("add_transaction.php", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: `type=${encodeURIComponent(type)}&amount=${encodeURIComponent(amount)}&description=${encodeURIComponent(description)}`
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.error) {
+            alert("Lỗi: " + data.error);
+        } else {
+            alert("Giao dịch đã thêm thành công!");
+            fetchTransactions();
+        }
+    })
+    .catch(error => console.error("Lỗi khi gửi dữ liệu:", error));
+}
+
+        function fetchTransactions() {
+            fetch("get_transactions.php")
+                .then(response => response.json())
+                .then(transactions => {
+                    const table = document.getElementById("finance-table");
+                    table.innerHTML = `
+                        <tr>
+                            <th>Loại</th>
+                            <th>Số tiền</th>
+                            <th>Mô tả</th>
+                        </tr>
+                    `;
+                    transactions.forEach(tran => {
+                        const row = table.insertRow(-1);
+                        row.innerHTML = `
+                            <td>${tran.type}</td>
+                            <td>${tran.amount}</td>
+                            <td>${tran.description}</td>
+                        `;
+                    });
+                })
+                .catch(error => console.error("Lỗi tải danh sách:", error));
+        }
+
+        window.onload = fetchTransactions;
         window.onload = fetchTasks;
     </script>
 </head>
@@ -329,16 +375,17 @@
         <div id="search" class="tab-content active">
             <h2>Tìm kiếm</h2>
             <input type="text" placeholder="Nhập từ khóa...">
-            <button>Tìm kiếm</button>
+            <button>Tìm kiếm</button>   
         </div>
         <div id="task-list" class="tab-content">
             <h2>Danh sách công việc</h2>
             <table id="task-table"></table>
         </div>
         <div id="calender" class="tab-content">
-            <h2>To do list</h2>
-            
+            <h2>To do list</h2>           
+            <iframe src="tasks.php" width="100%" height="600px" style="border: none;"></iframe>
         </div>
+
         <div id="finance" class="tab-content">
             <h2>Quản lý tài chính</h2>
             <div class="finance-form">
