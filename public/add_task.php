@@ -5,6 +5,17 @@ use Lazer\Classes\Database as Lazer;
 
 header('Content-Type: application/json');
 
+function logReplication($action, $table, $data) {
+    $logFile = __DIR__ . '/../database/replication.log';
+    $logEntry = [
+        'timestamp' => date('Y-m-d H:i:s'),
+        'action' => $action, // create, update, delete
+        'table' => $table,
+        'data' => $data
+    ];
+    file_put_contents($logFile, json_encode($logEntry) . PHP_EOL, FILE_APPEND);
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $taskName = isset($_POST['task']) ? trim($_POST['task']) : null;
     $deadline = isset($_POST['deadline']) ? trim($_POST['deadline']) : null;
@@ -28,12 +39,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $task->status = 'not_done';
 
         $task->save();
-        if (empty($taskName) || empty($formattedDeadline)) {
-            echo json_encode(["error" => "Dữ liệu không hợp lệ"]);
-            exit;
-        }
-        
 
+        logReplication('create', 'tasks', [
+            'id' => $task->id,
+            'task' => $taskName,
+            'deadline' => $formattedDeadline,
+            'status' => 'not_done'
+        ]);
 
         echo json_encode(["success" => true, "task" => $taskName, "deadline" => $formattedDeadline]);
     } catch (Exception $e) {
