@@ -373,9 +373,8 @@
     </div>
     <div class="content">
         <div id="search" class="tab-content active">
-            <h2>Tìm kiếm</h2>
-            <input type="text" placeholder="Nhập từ khóa...">
-            <button>Tìm kiếm</button>   
+            <iframe src="search_tasks.php" width="100%" height="500px"></iframe>
+
         </div>
         <div id="task-list" class="tab-content">
             <h2>Danh sách công việc</h2>
