@@ -1,3 +1,15 @@
+<?php
+session_start();
+
+// Kiểm tra xem người dùng đã đăng nhập chưa
+if (!isset($_SESSION['user'])) {
+    echo "❌ Bạn cần đăng nhập để truy cập trang này.";
+    exit;
+}
+
+// Lấy tên người dùng từ session
+$userName = $_SESSION['user']['name'];
+?>
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -361,10 +373,13 @@
 </head>
 <body>
     <div class="sidebar">
-        <div class="user-info">
-            <img src="https://static.vecteezy.com/system/resources/previews/019/879/186/non_2x/user-icon-on-transparent-background-free-png.png" alt="User Avatar" width="120" height="70">
-            <p>Người dùng</p>
+    <center>
+        <div class="user-info" style="display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 10px;">
+            <img src="https://static.vecteezy.com/system/resources/previews/019/879/186/non_2x/user-icon-on-transparent-background-free-png.png" 
+                alt="User Avatar" width="120" height="70" style="border-radius: 50%;">
+            <p style="font-size: 18px; font-weight: bold; color: #4CAF50; margin-top: 5px;"><?php echo htmlspecialchars($userName); ?></p>
         </div>
+    </center>
         <p onclick="showTab('search', this)" class="active">Tìm kiếm</p>
         <p onclick="showTab('task-list', this)">Danh sách công việc</p>
         <p onclick="showTab('calender', this)">Lịch</p>
@@ -374,7 +389,6 @@
     <div class="content">
         <div id="search" class="tab-content active">
             <iframe src="search_tasks.php" width="100%" height="500px"></iframe>
-
         </div>
         <div id="task-list" class="tab-content">
             <h2>Danh sách công việc</h2>
