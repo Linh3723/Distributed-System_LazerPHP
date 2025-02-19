@@ -203,6 +203,7 @@ $userName = $_SESSION['user']['name'];
                 item.classList.remove('active');
             });
             element.classList.add('active');
+            
             if (tabId === 'task-list') {
                 fetchTasks();
             }
@@ -502,6 +503,42 @@ $userName = $_SESSION['user']['name'];
             })
             .catch(error => console.error("Lỗi:", error));
         }
+        function backupDatabase() {
+            fetch('backup.php', { method: 'POST' })
+                .then(response => response.text())
+                .then(data => {
+                    alert(data);
+                    loadBackupList(); // Gọi hàm cập nhật danh sách backup
+                })
+                .catch(error => console.error("Lỗi khi backup:", error));
+        }
+        function loadBackupList() {
+            fetch('list_backups.php') // Tạo một file PHP để lấy danh sách backup
+                .then(response => response.json())
+                .then(data => {
+                    let backupList = document.getElementById("backupList");
+                    backupList.innerHTML = ""; // Xóa danh sách cũ
+                    data.forEach(backup => {
+                        let item = document.createElement("li");
+                        item.textContent = backup;
+                        backupList.appendChild(item);
+                    });
+                })
+                .catch(error => console.error("Lỗi khi tải danh sách backup:", error));
+        }
+        function restoreDatabase() {
+            let timestamp = prompt("Nhập timestamp để khôi phục (YYYYMMDD_HHMMSS):");
+            if (!timestamp) return;
+            
+            fetch('restore.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: 'timestamp=' + encodeURIComponent(timestamp)
+            })
+            .then(response => response.text())
+            .then(data => alert(data))
+            .catch(error => console.error("Lỗi khi restore:", error));
+        }
 
         document.addEventListener("DOMContentLoaded", loadTransactions);
         window.onload = fetchTasks;
@@ -527,6 +564,10 @@ $userName = $_SESSION['user']['name'];
             <iframe src="search_tasks.php" width="100%" height="500px"></iframe>
         </div>
         <div id="task-list" class="tab-content">
+            <div class="backup-container">
+                <button onclick="backupDatabase()">Backup Database</button>
+                <button onclick="restoreDatabase()">Restore Database</button>
+            </div>
             <h2>Danh sách công việc</h2>
             <table id="task-table"></table>
         </div>

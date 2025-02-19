@@ -70,6 +70,33 @@ class Database implements \IteratorAggregate, \Countable {
      * @return self
      * @throws LazerException If there's problems with load file
      */
+
+     private static $databasePath = __DIR__ . '/../../../database/';
+     private static $backupPath = __DIR__ . '/../../../backup/'; 
+     public static function backup() {
+         $timestamp = date('Ymd_His');
+         $backupDir = self::$backupPath . $timestamp . '/';      
+         if (!is_dir($backupDir)) {
+             mkdir($backupDir, 0777, true);
+         }
+         foreach (glob(self::$databasePath . '*') as $file) {
+             copy($file, $backupDir . basename($file));
+         }        
+         return "Backup created at: " . $backupDir;
+     }
+     public static function restore($timestamp) {
+         $restoreDir = self::$backupPath . $timestamp . '/';
+         
+         if (!is_dir($restoreDir)) {
+             return "Backup not found.";
+         }
+         
+         foreach (glob($restoreDir . '*') as $file) {
+             copy($file, self::$databasePath . basename($file));
+         }
+         
+         return "Database restored from backup: " . $restoreDir;
+    }
     public static function table(string $name): self
     {
         Helpers\Validate::table($name)->exists();
@@ -216,7 +243,7 @@ class Database implements \IteratorAggregate, \Countable {
         if (Helpers\Validate::table($this->name)->field($name) && Helpers\Validate::table($this->name)->type($name, $value))
         {
             $this->set->{$name} = is_string($value) && false === mb_check_encoding($value, 'UTF-8')
-                ? utf8_encode($value)
+                ? mb_convert_encoding($value, 'UTF-8', 'ISO-8859-1')
                 : $value;
         }
 
