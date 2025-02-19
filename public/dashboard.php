@@ -136,6 +136,62 @@ $userName = $_SESSION['user']['name'];
             width: 30px;
             height: 30px;
         }
+        .finance-form {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-width: 400px;
+            margin: 20px auto;
+            padding: 20px;
+            background: #f9f9f9;
+            border-radius: 10px;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .finance-form label {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .finance-form select,
+        .finance-form input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+
+        .finance-form button {
+            padding: 12px;
+            background: #28a745;
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .finance-form button:hover {
+            background: #218838;
+        }
+        .deleteTran-btn{
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .deleteTran-btn:hover {
+            background: #c82333;
+        }
+                
+
+
+
     </style>
     <script>
         function showTab(tabId, element) {
@@ -316,58 +372,138 @@ $userName = $_SESSION['user']['name'];
             .then(() => fetchTasks())
             .catch(error => console.error("Lỗi xóa công việc:", error));
         }
+
         function addTransaction() {
-    const type = document.getElementById("trans-type").value;
-    const amount = document.getElementById("trans-amount").value;
-    const description = document.getElementById("trans-desc").value;
+            let type = document.getElementById("trans-type").value;
+            let amount = document.getElementById("trans-amount").value.trim();
+            let description = document.getElementById("trans-desc").value.trim();
 
-    if (!amount || !description) {
-        alert("Vui lòng nhập số tiền và mô tả!");
-        return;
-    }
+            if (amount === "" || description === "") {
+                alert("Vui lòng nhập đầy đủ thông tin!");
+                return;
+            }
 
-    fetch("add_transaction.php", {
-        method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: `type=${encodeURIComponent(type)}&amount=${encodeURIComponent(amount)}&description=${encodeURIComponent(description)}`
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.error) {
-            alert("Lỗi: " + data.error);
-        } else {
-            alert("Giao dịch đã thêm thành công!");
-            fetchTransactions();
-        }
-    })
-    .catch(error => console.error("Lỗi khi gửi dữ liệu:", error));
-}
+            if (isNaN(amount) || parseFloat(amount) <= 0) {
+                alert("Số tiền không hợp lệ!");
+                return;
+            }
 
-        function fetchTransactions() {
-            fetch("get_transactions.php")
-                .then(response => response.json())
-                .then(transactions => {
-                    const table = document.getElementById("finance-table");
-                    table.innerHTML = `
-                        <tr>
-                            <th>Loại</th>
-                            <th>Số tiền</th>
-                            <th>Mô tả</th>
-                        </tr>
+            let formattedAmount = new Intl.NumberFormat('vi-VN').format(amount) + " VNĐ";
+
+            let transactionData = new FormData();
+            transactionData.append("type", type);
+            transactionData.append("amount", amount);
+            transactionData.append("description", description);
+
+            fetch("add_transaction.php", {
+                method: "POST",
+                body: transactionData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    let tableId = (type === "Thu nhập") ? "income-table" : "expense-table";
+                    let table = document.getElementById(tableId);
+                    
+                    let newRow = table.insertRow();
+                    newRow.innerHTML = `
+                        <td>${type}</td>
+                        <td>${formattedAmount}</td>
+                        <td>${description}</td>
+                        <td><button onclick="deleteTransaction(this)">Xóa</button></td>
                     `;
-                    transactions.forEach(tran => {
-                        const row = table.insertRow(-1);
+
+                    document.getElementById("trans-amount").value = "";
+                    document.getElementById("trans-desc").value = "";
+                } else {
+                    alert("Lỗi: " + data.error);
+                }
+            })
+            .catch(error => {
+                alert("Lỗi kết nối: " + error);
+            });
+        }
+        function deleteTransaction(id, button) {
+            if (!id) {
+                alert("ID không hợp lệ!");
+                return;
+            }
+
+            fetch('delete_transaction.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: `id=${id}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert("Xóa thành công!");
+                    button.closest("tr").remove(); // Xóa hàng khỏi bảng ngay
+                } else {
+                    alert("Lỗi: " + data.error);
+                }
+            })
+            .catch(error => console.error("Lỗi xóa:", error));
+        }
+
+
+        function updateFinanceTable(type, amount, description) {
+            let tableId = type === "Thu nhập" ? "income-table" : "expense-table";
+            let table = document.getElementById(tableId);
+
+            let newRow = table.insertRow();
+            newRow.innerHTML = `
+                <td>${type}</td>
+                <td>${parseInt(amount).toLocaleString("vi-VN")} VNĐ</td>
+                <td>${description}</td>
+                <td><button onclick="deleteTransaction(this)">Xóa</button></td>
+            `;
+        }
+
+
+
+
+        function loadTransactions() {
+            fetch("get_transactions.php")
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    let incomeTable = document.getElementById("income-table");
+                    let expenseTable = document.getElementById("expense-table");
+
+                    incomeTable.innerHTML = "<tr><th>Loại</th><th>Số tiền</th><th>Mô tả</th><th>Hành động</th></tr>";
+                    expenseTable.innerHTML = "<tr><th>Loại</th><th>Số tiền</th><th>Mô tả</th><th>Hành động</th></tr>";
+
+                    data.income.forEach(transaction => {
+                        let row = incomeTable.insertRow();
                         row.innerHTML = `
-                            <td>${tran.type}</td>
-                            <td>${tran.amount}</td>
-                            <td>${tran.description}</td>
+                            <td>${transaction.type}</td>
+                            <td>${transaction.amount}</td>
+                            <td>${transaction.description}</td>
+                            <td>
+                                <button onclick="deleteTransaction(${transaction.id})">Xóa</button>
+                            </td>
                         `;
                     });
-                })
-                .catch(error => console.error("Lỗi tải danh sách:", error));
+
+
+                    data.expense.forEach(transaction => {
+                        let row = expenseTable.insertRow();
+                        row.innerHTML = `
+                            <td>${transaction.type}</td>
+                            <td>${transaction.amount}</td>
+                            <td>${transaction.description}</td>
+                            <td><button onclick="deleteTransaction(${transaction.id}, this)">Xóa</button></td>
+                        `;
+                    });
+                } else {
+                    console.error("Lỗi lấy dữ liệu:", data.error);  
+                }
+            })
+            .catch(error => console.error("Lỗi:", error));
         }
 
-        window.onload = fetchTransactions;
+        document.addEventListener("DOMContentLoaded", loadTransactions);
         window.onload = fetchTasks;
     </script>
 </head>
@@ -377,7 +513,7 @@ $userName = $_SESSION['user']['name'];
         <div class="user-info" style="display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 10px;">
             <img src="https://static.vecteezy.com/system/resources/previews/019/879/186/non_2x/user-icon-on-transparent-background-free-png.png" 
                 alt="User Avatar" width="120" height="70" style="border-radius: 50%;">
-            <p style="font-size: 18px; font-weight: bold; color: #4CAF50; margin-top: 5px;"><?php echo htmlspecialchars($userName); ?></p>
+            <p style="font-size: 18px; font-weight: bold; color: #007BFF; margin-top: 5px;"><?php echo htmlspecialchars($userName); ?></p>
         </div>
     </center>
         <p onclick="showTab('search', this)" class="active">Tìm kiếm</p>
@@ -398,7 +534,6 @@ $userName = $_SESSION['user']['name'];
             <h2>To do list</h2>           
             <iframe src="tasks.php" width="100%" height="600px" style="border: none;"></iframe>
         </div>
-
         <div id="finance" class="tab-content">
             <h2>Quản lý tài chính</h2>
             <div class="finance-form">
@@ -410,11 +545,24 @@ $userName = $_SESSION['user']['name'];
                 <input type="text" id="trans-desc" placeholder="Mô tả giao dịch">
                 <button onclick="addTransaction()">Thêm giao dịch</button>
             </div>
-            <table id="finance-table" border="1" style="margin-top: 20px; width: 100%; text-align: center;">
+
+            <h3>Thu nhập</h3>
+            <table id="income-table" border="1" style="width: 100%; text-align: center;">
                 <tr>
                     <th>Loại</th>
                     <th>Số tiền</th>
                     <th>Mô tả</th>
+                    <th>Xóa</th>
+                </tr>
+            </table>
+
+            <h3>Chi tiêu</h3>
+            <table id="expense-table" border="1" style="width: 100%; text-align: center;">
+                <tr>
+                    <th>Loại</th>
+                    <th>Số tiền</th>
+                    <th>Mô tả</th>
+                    <th>Xóa</th>
                 </tr>
             </table>
         </div>

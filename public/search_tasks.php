@@ -33,7 +33,7 @@ if (!empty($keyword)) {
 </head>
 <body>
     <center>
-        <h2 style="color: #007BFF; margin-bottom: 10px;">Tìm kiếm công việc</h2>
+        <h2 style="margin-bottom: 10px;">Tìm kiếm</h2>
         <form method="GET" style="display: flex; justify-content: center; gap: 10px;">
             <input type="text" name="q" placeholder="Nhập từ khóa..." 
                 value="<?php echo htmlspecialchars($keyword); ?>" 

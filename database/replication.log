@@ -1,0 +1,3 @@
+{"timestamp":"2025-02-18 09:43:07","action":"create","table":"tasks","data":{"id":54,"task":"Thi cu\u1ed1i h\u1ecdc k\u1ef3","deadline":"2025-02-19","status":"not_done"}}
+{"timestamp":"2025-02-19 06:34:23","action":"create","table":"finance","data":{"id":14,"type":"Thu nh\u1eadp","amount":"400.000 VN\u0110","description":"L\u00ec x\u00ec"}}
+{"timestamp":"2025-02-19 06:34:36","action":"create","table":"finance","data":{"id":15,"type":"Chi ti\u00eau","amount":"50.000 VN\u0110","description":"Mua s\u1eafm"}}
